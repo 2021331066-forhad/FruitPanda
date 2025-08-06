@@ -3,6 +3,7 @@ import { Download, FileText, Calendar, DollarSign, Eye } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import { API_CONFIG } from '../../config/api';
 
 interface Receipt {
   id: string;
@@ -28,7 +29,7 @@ const ReceiptList: React.FC = () => {
   const fetchReceipts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/receipts/user', {
+      const response = await axios.get(`${API_CONFIG.baseURL}/receipts/user`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -49,7 +50,7 @@ const ReceiptList: React.FC = () => {
   const generateMissingReceipts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/api/receipts/generate-missing', {}, {
+      const response = await axios.post(`${API_CONFIG.baseURL}/receipts/generate-missing`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -69,7 +70,7 @@ const ReceiptList: React.FC = () => {
       setDownloading(receiptId);
       const token = localStorage.getItem('token');
       
-      const response = await axios.get(`http://localhost:3000/api/receipts/download/${receiptId}`, {
+      const response = await axios.get(`${API_CONFIG.baseURL}/receipts/download/${receiptId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         },

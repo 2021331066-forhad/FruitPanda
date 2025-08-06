@@ -3,6 +3,7 @@ import { Package, TrendingUp, Users, DollarSign, BarChart2, ShoppingBag, Truck, 
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../config/api';
 import { Link } from 'react-router-dom';
 
 interface Order {
@@ -73,7 +74,7 @@ const SellerDashboard: React.FC = () => {
       const token = localStorage.getItem('token');
       console.log('Fetching dashboard stats with token:', !!token);
       
-      const response = await axios.get('http://localhost:3000/api/seller/dashboard/stats', {
+      const response = await axios.get(`${API_CONFIG.baseURL}/seller/dashboard/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -96,7 +97,7 @@ const SellerDashboard: React.FC = () => {
       const token = localStorage.getItem('token');
       console.log('Fetching recent orders with token:', !!token);
       
-      const response = await axios.get('http://localhost:3000/api/seller/orders/recent', {
+      const response = await axios.get(`${API_CONFIG.baseURL}/seller/orders/recent`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -121,7 +122,7 @@ const SellerDashboard: React.FC = () => {
       const token = localStorage.getItem('token');
       console.log('Fetching products with token:', !!token);
       
-      const response = await axios.get('http://localhost:3000/api/seller/products?limit=10', {
+      const response = await axios.get(`${API_CONFIG.baseURL}/seller/products?limit=10`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -143,7 +144,7 @@ const SellerDashboard: React.FC = () => {
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`http://localhost:3000/api/seller/orders/${orderId}/status`, {
+      await axios.patch(`${API_CONFIG.baseURL}/seller/orders/${orderId}/status`, {
         status: newStatus
       }, {
         headers: {
@@ -167,7 +168,7 @@ const SellerDashboard: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3000/api/products/${productId}`, {
+      await axios.delete(`${API_CONFIG.baseURL}/products/${productId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

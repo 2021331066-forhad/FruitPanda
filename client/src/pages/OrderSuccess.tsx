@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, Download, ArrowLeft, Package, Phone, Mail } from 'lucide-react';
+import { CheckCircle, Download, ArrowLeft, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../config/api';
 
 interface OrderItem {
   productInfo: {
@@ -59,7 +60,7 @@ const OrderSuccess: React.FC = () => {
   const fetchOrderDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+      const response = await fetch(`${API_CONFIG.baseURL}/orders/${orderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -85,7 +86,7 @@ const OrderSuccess: React.FC = () => {
     setDownloading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/payments/receipt/${orderNumber}`, {
+      const response = await fetch(`${API_CONFIG.baseURL}/payments/receipt/${orderNumber}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

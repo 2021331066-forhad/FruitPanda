@@ -4,6 +4,7 @@ import { Store, User, MapPin, FileText, CheckCircle, AlertCircle, Upload, X } fr
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../config/api';
 
 interface FormData {
   // Personal
@@ -88,7 +89,7 @@ const SellerRegistration: React.FC = () => {
       
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/api/users/seller-applications/my-application', {
+        const response = await axios.get(`${API_CONFIG.baseURL}/users/seller-applications/my-application`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -204,7 +205,7 @@ const SellerRegistration: React.FC = () => {
       console.log('User info:', user);
       console.log('Submitting form data:', JSON.stringify(formData, null, 2));
       
-      const response = await axios.post('http://localhost:3000/api/users/seller-applications/submit', formData, {
+      const response = await axios.post(`${API_CONFIG.baseURL}/users/seller-applications/submit`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

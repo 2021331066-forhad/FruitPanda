@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { User, Package, CreditCard, Settings, LogOut, Save, Star, Truck, CheckCircle, Clock, AlertCircle, Plus, Edit, Trash2, Eye, EyeOff, Download } from 'lucide-react';
+import { User, Package, CreditCard, Settings, LogOut, Save, Star, Truck, CheckCircle, Clock, AlertCircle, Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../config/api';
 
 interface OrderItem {
   _id: string;
@@ -137,25 +138,55 @@ const UserProfile: React.FC = () => {
         return;
       }
 
-      const response = await axios.get('http://localhost:3000/api/users/orders', {
+      console.log('Fetching orders from:', `${API_CONFIG.baseURL}/users/orders`);
+      console.log('Token exists:', !!token);
+
+      const response = await axios.get(`${API_CONFIG.baseURL}/users/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 30000 // 30 second timeout
       });
       
-      console.log('Orders fetched successfully:', response.data);
-      setOrders(response.data.orders || []);
-    } catch (error: any) {
-      console.error('Error fetching orders:', error);
-      if (error.response?.status === 401) {
-        toast.error('Please login to view your orders');
-      } else if (error.response?.status === 404) {
-        toast.error('No orders found');
-        setOrders([]);
+      console.log('Orders API response:', response.data);
+      
+      if (response.data && response.data.orders) {
+        setOrders(response.data.orders);
+        console.log('Orders set successfully:', response.data.orders.length, 'orders');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to load order history');
+        console.log('No orders in response or invalid response structure');
+        setOrders([]);
       }
+    } catch (error: unknown) {
+      console.error('Error fetching orders:', error);
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const err = error as { response?: { data?: { message?: string }, status?: number } };
+        console.error('Error response:', err.response?.data);
+        console.error('Error status:', err.response?.status);
+        
+        if (err.response?.status === 401) {
+          toast.error('Please login to view your orders');
+        } else if (err.response?.status === 404) {
+          toast.error('No orders found');
+          setOrders([]);
+        } else {
+          toast.error(err.response?.data?.message || 'Failed to load order history');
+        }
+      } else if (error && typeof error === 'object' && 'code' in error) {
+        const err = error as { code?: string };
+        if (err.code === 'ECONNABORTED') {
+          toast.error('Request timeout. Please try again.');
+        } else if (err.code === 'ERR_NETWORK') {
+          toast.error('Network error. Please check your connection.');
+        } else {
+          toast.error('Failed to load order history');
+        }
+      } else {
+        toast.error('Failed to load order history');
+      }
+      setOrders([]);
     } finally {
       setOrdersLoading(false);
     }
@@ -168,7 +199,7 @@ const UserProfile: React.FC = () => {
     setPaymentMethodsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/users/payment-methods', {
+      const response = await axios.get(`${API_CONFIG.baseURL}/users/payment-methods`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -187,7 +218,7 @@ const UserProfile: React.FC = () => {
   const handleAddPaymentMethod = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/api/users/payment-methods', paymentForm, {
+      await axios.post(`${API_CONFIG.baseURL}/users/payment-methods`, paymentForm, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -198,9 +229,14 @@ const UserProfile: React.FC = () => {
       setShowAddPaymentModal(false);
       resetPaymentForm();
       fetchPaymentMethods();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding payment method:', error);
-      toast.error(error.response?.data?.message || 'Failed to add payment method');
+      if (error && typeof error === 'object' && 'response' in error) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || 'Failed to add payment method');
+      } else {
+        toast.error('Failed to add payment method');
+      }
     }
   };
 
@@ -210,7 +246,7 @@ const UserProfile: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`http://localhost:3000/api/users/payment-methods/${editingPaymentMethod._id}`, paymentForm, {
+      await axios.put(`${API_CONFIG.baseURL}/users/payment-methods/${editingPaymentMethod._id}`, paymentForm, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -221,9 +257,14 @@ const UserProfile: React.FC = () => {
       setEditingPaymentMethod(null);
       resetPaymentForm();
       fetchPaymentMethods();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating payment method:', error);
-      toast.error(error.response?.data?.message || 'Failed to update payment method');
+      if (error && typeof error === 'object' && 'response' in error) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || 'Failed to update payment method');
+      } else {
+        toast.error('Failed to update payment method');
+      }
     }
   };
 
@@ -233,7 +274,7 @@ const UserProfile: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3000/api/users/payment-methods/${methodId}`, {
+      await axios.delete(`${API_CONFIG.baseURL}/users/payment-methods/${methodId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -242,9 +283,14 @@ const UserProfile: React.FC = () => {
       
       toast.success('Payment method deleted successfully');
       fetchPaymentMethods();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting payment method:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete payment method');
+      if (error && typeof error === 'object' && 'response' in error) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || 'Failed to delete payment method');
+      } else {
+        toast.error('Failed to delete payment method');
+      }
     }
   };
 
@@ -252,7 +298,7 @@ const UserProfile: React.FC = () => {
   const handleSetDefaultPaymentMethod = async (methodId: string) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`http://localhost:3000/api/users/payment-methods/${methodId}/default`, {}, {
+      await axios.patch(`${API_CONFIG.baseURL}/users/payment-methods/${methodId}/default`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -261,9 +307,14 @@ const UserProfile: React.FC = () => {
       
       toast.success('Default payment method updated');
       fetchPaymentMethods();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error setting default payment method:', error);
-      toast.error(error.response?.data?.message || 'Failed to set default payment method');
+      if (error && typeof error === 'object' && 'response' in error) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || 'Failed to set default payment method');
+      } else {
+        toast.error('Failed to set default payment method');
+      }
     }
   };
 
@@ -382,7 +433,7 @@ const UserProfile: React.FC = () => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:3000/api/products/${selectedOrder.items[0].product._id}/reviews`, {
+      await axios.post(`${API_CONFIG.baseURL}/products/${selectedOrder.items[0].product._id}/reviews`, {
         rating: ratingForm.rating,
         comment: ratingForm.comment,
         orderId: selectedOrder._id
@@ -408,7 +459,7 @@ const UserProfile: React.FC = () => {
   const downloadReceipt = async (orderNumber: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/receipts/download/order/${orderNumber}`, {
+      const response = await fetch(`${API_CONFIG.baseURL}/receipts/download/order/${orderNumber}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -457,7 +508,7 @@ const UserProfile: React.FC = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put('http://localhost:3000/api/users/profile', formData, {
+      const response = await axios.put(`${API_CONFIG.baseURL}/users/profile`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -493,7 +544,7 @@ const UserProfile: React.FC = () => {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/api/users/profile', {
+        const response = await axios.get(`${API_CONFIG.baseURL}/users/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -529,9 +580,19 @@ const UserProfile: React.FC = () => {
   // Fetch orders when orders tab is active
   useEffect(() => {
     if (activeTab === 'orders') {
+      console.log('Orders tab activated, fetching orders...');
       fetchOrders();
     }
   }, [activeTab]);
+
+  // Also fetch orders when component mounts if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token && authUser) {
+      console.log('User is logged in, fetching orders on mount...');
+      fetchOrders();
+    }
+  }, [authUser]);
 
   // Fetch payment methods when payment tab is active
   useEffect(() => {
@@ -750,12 +811,32 @@ const UserProfile: React.FC = () => {
                   <div>
                     <div className="flex justify-between items-center mb-6">
                       <h2 className="text-xl font-semibold">Order History</h2>
-                      <button
-                        onClick={fetchOrders}
-                        className="text-green-600 hover:text-green-700 text-sm font-medium"
-                      >
-                        Refresh
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            console.log('Testing API connection...');
+                            fetch(`${API_CONFIG.baseURL}/health`)
+                              .then(res => res.json())
+                              .then(data => {
+                                console.log('API health check:', data);
+                                toast.success('API connection working!');
+                              })
+                              .catch(err => {
+                                console.error('API health check failed:', err);
+                                toast.error('API connection failed');
+                              });
+                          }}
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        >
+                          Test API
+                        </button>
+                        <button
+                          onClick={fetchOrders}
+                          className="text-green-600 hover:text-green-700 text-sm font-medium"
+                        >
+                          Refresh
+                        </button>
+                      </div>
                     </div>
                     {ordersLoading ? (
                       <div className="text-center py-8">
@@ -767,6 +848,12 @@ const UserProfile: React.FC = () => {
                         <Package size={64} className="mx-auto text-gray-400 mb-4" />
                         <p className="text-gray-600">No orders found</p>
                         <p className="text-sm text-gray-500 mb-4">Start shopping to see your order history here</p>
+                        <div className="space-y-2 text-xs text-gray-500">
+                          <p>Debug Info:</p>
+                          <p>API URL: {API_CONFIG.baseURL}</p>
+                          <p>Orders Count: {orders.length}</p>
+                          <p>User: {authUser?.name || 'Not logged in'}</p>
+                        </div>
                         <button
                           onClick={() => window.location.href = '/shop'}
                           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
@@ -807,8 +894,12 @@ const UserProfile: React.FC = () => {
                                             alt={item.product?.name || 'Product'}
                                             className="w-full h-full object-cover rounded-lg"
                                             onError={(e) => {
-                                              e.currentTarget.style.display = 'none';
-                                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                                              const target = e.currentTarget as HTMLImageElement;
+                                              target.style.display = 'none';
+                                              const nextElement = target.nextElementSibling as HTMLElement;
+                                              if (nextElement) {
+                                                nextElement.style.display = 'flex';
+                                              }
                                             }}
                                             loading="lazy"
                                           />

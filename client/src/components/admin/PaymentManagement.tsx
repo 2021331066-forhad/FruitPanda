@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DollarSign, CheckCircle, XCircle, Clock, Eye, Download } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../../config/api';
 
 interface PendingPayment {
   _id: string;
@@ -42,7 +43,7 @@ const PaymentManagement: React.FC = () => {
   const fetchPendingPayments = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/orders?status=pending&paymentStatus=pending', {
+      const response = await axios.get(`${API_CONFIG.baseURL}/orders?status=pending&paymentStatus=pending`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -61,7 +62,7 @@ const PaymentManagement: React.FC = () => {
   const generateAllReceipts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/api/receipts/generate-all-paid', {}, {
+      const response = await axios.post(`${API_CONFIG.baseURL}/receipts/generate-all-paid`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -84,7 +85,7 @@ const PaymentManagement: React.FC = () => {
     setConfirming(orderId);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`http://localhost:3000/api/payments/admin/confirm/${orderId}`, {
+      const response = await axios.post(`${API_CONFIG.baseURL}/payments/admin/confirm/${orderId}`, {
         transactionId: confirmationForm.transactionId,
         notes: confirmationForm.notes
       }, {
@@ -116,7 +117,7 @@ const PaymentManagement: React.FC = () => {
     setRejecting(orderId);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`http://localhost:3000/api/payments/admin/reject/${orderId}`, {
+      const response = await axios.post(`${API_CONFIG.baseURL}/payments/admin/reject/${orderId}`, {
         reason
       }, {
         headers: {

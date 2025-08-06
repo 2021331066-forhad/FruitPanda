@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../config/api';
 
 interface User {
   id: string;
@@ -34,12 +35,10 @@ export const useAuth = () => {
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: API_CONFIG.baseURL,
   withCredentials: true,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  }
+  timeout: API_CONFIG.timeout,
+  headers: API_CONFIG.headers,
 });
 
 // Request interceptor to add auth token
@@ -166,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = () => {
-    window.location.href = 'http://localhost:3000/api/auth/google';
+    window.location.href = `${API_CONFIG.baseURL}/auth/google`;
   };
 
   // const loginWithGoogle = async () => {

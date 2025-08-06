@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import type { CartItem } from '../context/CartContext';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../config/api';
 
 interface DeliveryAddress {
   fullName: string;
@@ -55,7 +56,7 @@ const Checkout: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await fetch('http://localhost:3000/api/users/profile', {
+        const response = await fetch(`${API_CONFIG.baseURL}/users/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -229,7 +230,7 @@ const Checkout: React.FC = () => {
       console.log('Sending order request with token:', token ? 'Token exists' : 'No token');
       console.log('Order data:', orderData);
       
-      const response = await fetch('http://localhost:3000/api/orders', {
+      const response = await fetch(`${API_CONFIG.baseURL}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +262,7 @@ const Checkout: React.FC = () => {
       
       // Test: Verify the order was created properly
       try {
-        const testResponse = await fetch(`http://localhost:3000/api/orders/test/${result.order._id}`, {
+        const testResponse = await fetch(`${API_CONFIG.baseURL}/orders/test/${result.order._id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -319,7 +320,7 @@ const Checkout: React.FC = () => {
       
       console.log('Sending payment confirmation request:', requestData);
       
-      const response = await fetch('http://localhost:3000/api/payments/submit', {
+      const response = await fetch(`${API_CONFIG.baseURL}/payments/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -360,7 +361,6 @@ const Checkout: React.FC = () => {
       
     } catch (error) {
       console.error('Error confirming payment:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.log('Payment confirmation failed, but proceeding to success page');
       
       // Even if there's an error, proceed to success page
@@ -379,7 +379,7 @@ const Checkout: React.FC = () => {
   const downloadReceipt = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/payments/receipt/${orderNumber}`, {
+      const response = await fetch(`${API_CONFIG.baseURL}/payments/receipt/${orderNumber}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_CONFIG } from '../config/api';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -288,7 +289,7 @@ const Register: React.FC = () => {
             <div className="mt-6">
               <button
                 type="button"
-                onClick={() => window.location.href = 'http://localhost:3000/api/auth/google'}
+                onClick={() => window.location.href = `${API_CONFIG.baseURL}/auth/google`}
                 className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
               >
                 <img

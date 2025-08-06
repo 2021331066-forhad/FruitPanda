@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageCircle, Clock, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { API_CONFIG } from '../config/api';
 
 interface ContactForm {
   name: string;
@@ -42,7 +43,7 @@ const Contact: React.FC = () => {
     
     try {
       // Send data to backend
-      const response = await fetch('http://localhost:3000/api/contact', {
+      const response = await fetch(`${API_CONFIG.baseURL}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
